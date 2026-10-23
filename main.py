@@ -220,6 +220,7 @@ def main_keyboard():
             callback_data=f"product:{key}",
         )])
     rows.append([InlineKeyboardButton("🎁  АКТУАЛЬНЫЕ ПЛЮШКИ  ·  БОНУСЫ", callback_data="perks")])
+    rows.append([InlineKeyboardButton("🛍 Другие товары", callback_data="other_products")])
     rows.append([InlineKeyboardButton("🧩 Актуальное расширение Google Flow", url="https://t.me/+Fxcp24v79SwyMjAy")])
     rows.append([InlineKeyboardButton("🔐 Ferixdi VPN", url="https://t.me/ferixdi_vpn_bot")])
     rows.append([InlineKeyboardButton("👥 Чат AI-креаторов", url="https://t.me/ai_neiro_chat")])
