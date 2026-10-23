@@ -1,6 +1,9 @@
 import os
 import logging
+import secrets
 from urllib.parse import quote
+
+from aiohttp import web
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -282,15 +285,79 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(payment_text, reply_markup=markup)
 
 
-def main():
+async def health(request: web.Request):
+    return web.json_response({"ok": True, "service": "ferixdi-ai-shop"})
+
+
+async def telegram_webhook(request: web.Request):
+    expected_secret = request.app["webhook_secret"]
+    received_secret = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if not secrets.compare_digest(received_secret, expected_secret):
+        raise web.HTTPForbidden(text="Invalid webhook secret")
+
+    try:
+        payload = await request.json()
+        update = Update.de_json(payload, request.app["telegram_app"].bot)
+        await request.app["telegram_app"].process_update(update)
+    except Exception:
+        log.exception("Failed to process Telegram webhook update")
+        raise web.HTTPBadRequest(text="Invalid update")
+    return web.Response(text="OK")
+
+
+async def on_startup(server: web.Application):
     if not BOT_TOKEN:
         raise RuntimeError("Set BOT_TOKEN in Render environment variables.")
-    app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("shop", start))
-    app.add_handler(CallbackQueryHandler(callbacks))
-    log.info("Ferixdi AI Shop bot starting")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+
+    telegram_app = Application.builder().token(BOT_TOKEN).build()
+    telegram_app.add_handler(CommandHandler("start", start))
+    telegram_app.add_handler(CommandHandler("shop", start))
+    telegram_app.add_handler(CallbackQueryHandler(callbacks))
+
+    await telegram_app.initialize()
+    await telegram_app.start()
+
+    external_url = os.getenv("RENDER_EXTERNAL_URL", "").strip().rstrip("/")
+    if not external_url:
+        raise RuntimeError(
+            "RENDER_EXTERNAL_URL is missing. Deploy this app as a Render Web Service."
+        )
+
+    webhook_secret = os.getenv("WEBHOOK_SECRET", "").strip() or secrets.token_urlsafe(32)
+    webhook_url = f"{external_url}/telegram"
+    await telegram_app.bot.set_webhook(
+        url=webhook_url,
+        secret_token=webhook_secret,
+        allowed_updates=Update.ALL_TYPES,
+        drop_pending_updates=False,
+    )
+
+    server["telegram_app"] = telegram_app
+    server["webhook_secret"] = webhook_secret
+    log.info("Ferixdi AI Shop webhook configured at %s", webhook_url)
+
+
+async def on_cleanup(server: web.Application):
+    telegram_app = server.get("telegram_app")
+    if telegram_app:
+        await telegram_app.stop()
+        await telegram_app.shutdown()
+
+
+def create_web_app():
+    server = web.Application(client_max_size=1024 * 1024)
+    server.router.add_get("/", health)
+    server.router.add_get("/health", health)
+    server.router.add_post("/telegram", telegram_webhook)
+    server.on_startup.append(on_startup)
+    server.on_cleanup.append(on_cleanup)
+    return server
+
+
+def main():
+    log.info("Starting Ferixdi AI Shop as a webhook web service")
+    port = int(os.getenv("PORT", "10000"))
+    web.run_app(create_web_app(), host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
