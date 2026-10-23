@@ -213,6 +213,8 @@ https://flow.google/
 def main_keyboard():
     rows = []
     for key, product in PRODUCTS.items():
+        if key == "parser_llm":
+            continue
         rows.append([InlineKeyboardButton(
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
             callback_data=f"product:{key}",
