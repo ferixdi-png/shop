@@ -187,6 +187,7 @@ def main_keyboard():
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
             callback_data=f"product:{key}",
         )])
+    rows.append([InlineKeyboardButton("🎁 Актуальные плюшки", callback_data="perks")])
     rows.append([InlineKeyboardButton("🎨 GPT Image 2.5 — бесплатно", url="https://t.me/free_images_ferixdi_bot")])
     rows.append([InlineKeyboardButton("📢 Канал Ferixdi AI", url="https://t.me/ferixdi_ai")])
     rows.append([InlineKeyboardButton("🆘 Поддержка", url="https://t.me/ferixdiii")])
@@ -234,6 +235,30 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "catalog":
         await show_catalog(query)
+        return
+
+    if data == "perks":
+        perks_text = (
+            "🎁 АКТУАЛЬНЫЕ ПЛЮШКИ\n\n"
+            "Подборка бонусов и временных возможностей. Первые два бонуса предназначены для новых аккаунтов при первой авторизации. Условия сервисов могут меняться.\n\n"
+            "1️⃣ MIORA DESIGN — 1000 кредитов\n"
+            "Для нового аккаунта: авторизуйтесь на сайте, чтобы получить 1000 кредитов.\n"
+            "👉 https://miora.design/\n\n"
+            "2️⃣ HAILUO AI — 3000 кредитов\n"
+            "Бонус за скачивание приложения на компьютер. Проверьте условия начисления после установки и входа в аккаунт.\n"
+            "👉 https://hailuoai.video/\n\n"
+            "3️⃣ PICSART PRO — безлимит WAN до конца месяца\n"
+            "На тарифе Pro доступна возможность безлимитной генерации Wan до конца текущего месяца — проверьте доступность функции в своём аккаунте.\n"
+            "👉 https://picsart.com/\n\n"
+            "💡 Перед активацией проверьте актуальные условия на сайтах сервисов."
+        )
+        markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🌐 MIORA DESIGN", url="https://miora.design/")],
+            [InlineKeyboardButton("🌐 HAILUO AI", url="https://hailuoai.video/")],
+            [InlineKeyboardButton("🌐 PICSART PRO", url="https://picsart.com/")],
+            [InlineKeyboardButton("⬅️ В каталог", callback_data="catalog")],
+        ])
+        await query.edit_message_text(perks_text, reply_markup=markup, disable_web_page_preview=True)
         return
 
     action, _, key = data.partition(":")
