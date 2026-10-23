@@ -454,7 +454,7 @@ def main_keyboard():
     rows.append([InlineKeyboardButton("🔐 Ferixdi VPN · есть бесплатный тариф", url="https://t.me/ferixdi_vpn_bot?start=start")])
     rows.append([InlineKeyboardButton("👥 Чат AI-креаторов", url="https://t.me/ai_neiro_chat")])
     rows.append([
-        InlineKeyboardButton("🎨 Бесплатный AI-генератор", url="https://t.me/free_images_ferixdi_bot?start=start"),
+        InlineKeyboardButton("🎨 Бесплатный GPT Image 2.5", url="https://t.me/free_images_ferixdi_bot?start=start"),
     ])
     rows.append([
         InlineKeyboardButton("📢 Канал Ferixdi AI", url="https://t.me/ferixdi_ai"),
