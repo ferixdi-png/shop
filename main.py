@@ -243,7 +243,7 @@ OMNI CREATIVE AGENT v20.0
 def main_keyboard():
     rows = []
     for key, product in PRODUCTS.items():
-        if key == "parser_llm":
+        if key in ("parser_llm", "omni_creative_v20"):
             continue
         rows.append([InlineKeyboardButton(
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
@@ -324,6 +324,7 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         other_markup = InlineKeyboardMarkup([
             [InlineKeyboardButton("📘 Парсер + LLM · 2 499 ₽", callback_data="product:parser_llm")],
+            [InlineKeyboardButton("🚀 OMNI CREATIVE AGENT v20.0 · 2 999 ₽", callback_data="product:omni_creative_v20")],
             [InlineKeyboardButton("⬅️ В каталог", callback_data="catalog")],
         ])
         await query.edit_message_text(other_text, reply_markup=other_markup)
