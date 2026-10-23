@@ -401,7 +401,7 @@ UGC-креативы, рекламные ролики, Reels, Shorts, TikTok, AI
 def main_keyboard():
     rows = []
     for key, product in PRODUCTS.items():
-        if key in ("parser_llm", "omni_creative_v20", "remove_ai_label", "seedream_prompts", "video_reconstruction", "vpn_bot_turnkey"):
+        if key in ("parser_llm", "omni_creative_v20", "remove_ai_label", "seedream_prompts", "video_reconstruction", "vpn_bot_turnkey", "own_data_audit"):
             continue
         rows.append([InlineKeyboardButton(
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
@@ -487,6 +487,7 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("🔥 Seedream 5 Pro · 100 промптов · 999 ₽", callback_data="product:seedream_prompts")],
             [InlineKeyboardButton("🎬 Видео → Промпт 1:1 · 999 ₽", callback_data="product:video_reconstruction")],
             [InlineKeyboardButton("🔐 Готовый VPN-бот под ключ · 7 500 ₽", callback_data="product:vpn_bot_turnkey")],
+            [InlineKeyboardButton("🔐 Проверка собственных данных · 5 000 ₽", callback_data="product:own_data_audit")],
             [InlineKeyboardButton("⬅️ В каталог", callback_data="catalog")],
         ])
         await query.edit_message_text(other_text, reply_markup=other_markup)
