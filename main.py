@@ -296,7 +296,7 @@ Instagram и YouTube могут определять AI-контент по ме
 def main_keyboard():
     rows = []
     for key, product in PRODUCTS.items():
-        if key in ("parser_llm", "omni_creative_v20", "remove_ai_label"):
+        if key in ("parser_llm", "omni_creative_v20", "remove_ai_label", "seedream_prompts"):
             continue
         rows.append([InlineKeyboardButton(
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
@@ -379,6 +379,7 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("📘 Парсер + LLM · 2 499 ₽", callback_data="product:parser_llm")],
             [InlineKeyboardButton("🚀 OMNI CREATIVE AGENT v20.0 · 2 999 ₽", callback_data="product:omni_creative_v20")],
             [InlineKeyboardButton("🎬 Убираем метку AI-контент · 999 ₽", callback_data="product:remove_ai_label")],
+            [InlineKeyboardButton("🔥 Seedream 5 Pro · 100 промптов · 999 ₽", callback_data="product:seedream_prompts")],
             [InlineKeyboardButton("⬅️ В каталог", callback_data="catalog")],
         ])
         await query.edit_message_text(other_text, reply_markup=other_markup)
