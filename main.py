@@ -283,6 +283,22 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_catalog(query)
         return
 
+    if data == "other_products":
+        other_text = (
+            "🛍 ДРУГИЕ ТОВАРЫ\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            "Дополнительные материалы и инструменты Ferixdi AI\n\n"
+            "📘 Парсер + LLM: 100 сценариев применения\n"
+            "100 идей для работы с реальными данными из интернета: тренды, конкуренты, клиенты, цены, контент и анализ аудитории.\n\n"
+            "Выберите товар, чтобы посмотреть полное описание и условия покупки."
+        )
+        other_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("📘 Парсер + LLM · 2 499 ₽", callback_data="product:parser_llm")],
+            [InlineKeyboardButton("⬅️ В каталог", callback_data="catalog")],
+        ])
+        await query.edit_message_text(other_text, reply_markup=other_markup)
+        return
+
     if data == "perks":
         perks_text = (
             "🎁 АКТУАЛЬНЫЕ ПЛЮШКИ · БОНУСЫ\n"
