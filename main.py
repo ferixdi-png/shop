@@ -187,6 +187,9 @@ def main_keyboard():
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
             callback_data=f"product:{key}",
         )])
+    rows.append([InlineKeyboardButton("🎨 GPT Image 2.5 — бесплатно", url="https://t.me/free_images_ferixdi_bot")])
+    rows.append([InlineKeyboardButton("📢 Канал Ferixdi AI", url="https://t.me/ferixdi_ai")])
+    rows.append([InlineKeyboardButton("🆘 Поддержка", url="https://t.me/ferixdiii")])
     rows.append([InlineKeyboardButton("💬 Задать вопрос продавцу", url=f"https://t.me/{ADMIN_USERNAME}")])
     return InlineKeyboardMarkup(rows)
 
