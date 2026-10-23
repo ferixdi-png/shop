@@ -201,15 +201,15 @@ def main_keyboard():
 
 def product_keyboard(key):
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📖 Подробнее", callback_data=f"details:{key}")],
-        [InlineKeyboardButton("🛒 Купить", callback_data=f"buy:{key}")],
+        [InlineKeyboardButton("📖 Подробнее о товаре", callback_data=f"details:{key}")],
+        [InlineKeyboardButton(f"🛒 Купить · {PRODUCTS[key]['price']:,} ₽".replace(",", " "), callback_data=f"buy:{key}")],
         [InlineKeyboardButton("⬅️ В каталог", callback_data="catalog")],
     ])
 
 
 def detail_keyboard(key):
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🛒 Купить", callback_data=f"buy:{key}")],
+        [InlineKeyboardButton(f"🛒 Купить · {PRODUCTS[key]['price']:,} ₽".replace(",", " "), callback_data=f"buy:{key}")],
         [InlineKeyboardButton("⬅️ Назад к товару", callback_data=f"product:{key}")],
         [InlineKeyboardButton("🏪 В каталог", callback_data="catalog")],
     ])
@@ -250,8 +250,8 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "perks":
         perks_text = (
-            "🎁 АКТУАЛЬНЫЕ ПЛЮШКИ\n"
-            "Бонусы для тех, кто создаёт AI-контент\n\n"
+            "🎁 АКТУАЛЬНЫЕ ПЛЮШКИ · БОНУСЫ\n"
+            "Бонусы и предложения для AI-контента\n\n"
             "━━━━━━━━━━━━━━━━━━\n"
             "① MIORA DESIGN\n"
             "💎 1000 кредитов\n"
@@ -291,8 +291,8 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "━━━━━━━━━━━━━━━━━━\n"
             f"💳 Стоимость: {product['price']:,} ₽\n\n"
             f"✨ {product['short']}\n\n"
-            "📖 Хотите узнать детали? Откройте полное описание.\n"
-            "🛒 Готовы оформить? Нажмите «Купить» — покажем порядок оплаты."
+            "📖 Нажмите «Подробнее о товаре», чтобы открыть полное описание.\n"
+            "🛒 Нажмите кнопку покупки — покажем сумму и порядок оплаты."
         ).replace(",", " ")
         await query.edit_message_text(text, reply_markup=product_keyboard(key))
         return
