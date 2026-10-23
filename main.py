@@ -451,7 +451,7 @@ def main_keyboard():
     rows.append([InlineKeyboardButton("🎁  АКТУАЛЬНЫЕ ПЛЮШКИ  ·  БОНУСЫ", callback_data="perks")])
     rows.append([InlineKeyboardButton("🛍 Другие товары", callback_data="other_products")])
     rows.append([InlineKeyboardButton("🧩 Актуальное расширение Google Flow", url="https://t.me/+Fxcp24v79SwyMjAy")])
-    rows.append([InlineKeyboardButton("🔐 Ferixdi VPN", url="https://t.me/ferixdi_vpn_bot")])
+    rows.append([InlineKeyboardButton("🔐 Ferixdi VPN · есть бесплатный тариф", url="https://t.me/ferixdi_vpn_bot?start=start")])
     rows.append([InlineKeyboardButton("👥 Чат AI-креаторов", url="https://t.me/ai_neiro_chat")])
     rows.append([
         InlineKeyboardButton("🎨 Бесплатный AI-генератор", url="https://t.me/free_images_ferixdi_bot"),
