@@ -188,6 +188,7 @@ def main_keyboard():
             callback_data=f"product:{key}",
         )])
     rows.append([InlineKeyboardButton("🎁  АКТУАЛЬНЫЕ ПЛЮШКИ  ·  БОНУСЫ", callback_data="perks")])
+    rows.append([InlineKeyboardButton("🧩 Актуальное расширение Google Flow", url="https://t.me/+Fxcp24v79SwyMjAy")])
     rows.append([
         InlineKeyboardButton("🎨 Бесплатный AI-генератор", url="https://t.me/free_images_ferixdi_bot"),
     ])
