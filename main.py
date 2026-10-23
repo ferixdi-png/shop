@@ -187,10 +187,14 @@ def main_keyboard():
             f"{product['title']} · {product['price']:,} ₽".replace(",", " "),
             callback_data=f"product:{key}",
         )])
-    rows.append([InlineKeyboardButton("🎁 Актуальные плюшки", callback_data="perks")])
-    rows.append([InlineKeyboardButton("🎨 GPT Image 2.5 — бесплатно", url="https://t.me/free_images_ferixdi_bot")])
-    rows.append([InlineKeyboardButton("📢 Канал Ferixdi AI", url="https://t.me/ferixdi_ai")])
-    rows.append([InlineKeyboardButton("🆘 Поддержка / задать вопрос продавцу", url=f"https://t.me/{ADMIN_USERNAME}")])
+    rows.append([InlineKeyboardButton("🎁  АКТУАЛЬНЫЕ ПЛЮШКИ  ·  БОНУСЫ", callback_data="perks")])
+    rows.append([
+        InlineKeyboardButton("🎨 Бесплатный AI-генератор", url="https://t.me/free_images_ferixdi_bot"),
+    ])
+    rows.append([
+        InlineKeyboardButton("📢 Канал Ferixdi AI", url="https://t.me/ferixdi_ai"),
+        InlineKeyboardButton("🆘 Поддержка", url=f"https://t.me/{ADMIN_USERNAME}"),
+    ])
     return InlineKeyboardMarkup(rows)
 
 
@@ -212,17 +216,24 @@ def detail_keyboard(key):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "✨ FERIXDI AI SHOP\n\n"
-        "AI-инструменты, доступы и практическое обучение.\n"
-        "Выбери товар, чтобы посмотреть краткое описание и условия покупки. "
-        "Полное описание открывается кнопкой «Подробнее»."
+        "✦ FERIXDI AI SHOP ✦\n"
+        "AI-инструменты • доступы • полезные возможности\n\n"
+        "Добро пожаловать! Здесь собраны инструменты для создания AI-контента и практические материалы.\n\n"
+        "👇 Выберите интересующий раздел или товар\n"
+        "📦 Нажмите на товар — увидите цену и краткое описание\n"
+        "📖 Внутри товара есть полные условия\n"
+        "🛒 Для оформления нажмите «Купить»\n\n"
+        "🎁 Загляните в «Актуальные плюшки» — там бонусы и предложения сервисов"
     )
     await update.effective_message.reply_text(text, reply_markup=main_keyboard())
 
 
 async def show_catalog(query):
     await query.edit_message_text(
-        "✨ FERIXDI AI SHOP\n\nВыбери товар из каталога:",
+        "✦ FERIXDI AI SHOP ✦\n\n"
+        "📦 КАТАЛОГ\n"
+        "Выберите товар, чтобы посмотреть описание, цену и условия.\n\n"
+        "🎁 Не пропустите бонусы в разделе «Актуальные плюшки».",
         reply_markup=main_keyboard(),
     )
 
@@ -238,18 +249,22 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "perks":
         perks_text = (
-            "🎁 АКТУАЛЬНЫЕ ПЛЮШКИ\n\n"
-            "Подборка бонусов и временных возможностей. Первые два бонуса предназначены для новых аккаунтов при первой авторизации. Условия сервисов могут меняться.\n\n"
-            "1️⃣ MIORA DESIGN — 1000 кредитов\n"
-            "Для нового аккаунта: авторизуйтесь на сайте, чтобы получить 1000 кредитов.\n"
-            "👉 https://miora.design/\n\n"
-            "2️⃣ HAILUO AI — 3000 кредитов\n"
-            "Бонус за скачивание приложения на компьютер. Проверьте условия начисления после установки и входа в аккаунт.\n"
-            "👉 https://hailuoai.video/\n\n"
-            "3️⃣ PICSART PRO — безлимит WAN до конца месяца\n"
-            "На тарифе Pro доступна возможность безлимитной генерации Wan до конца текущего месяца — проверьте доступность функции в своём аккаунте.\n"
-            "👉 https://picsart.com/\n\n"
-            "💡 Перед активацией проверьте актуальные условия на сайтах сервисов."
+            "🎁 АКТУАЛЬНЫЕ ПЛЮШКИ\n"
+            "Бонусы для тех, кто создаёт AI-контент\n\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            "① MIORA DESIGN\n"
+            "💎 1000 кредитов\n"
+            "Для нового аккаунта при первой авторизации.\n\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            "② HAILUO AI\n"
+            "💎 3000 кредитов\n"
+            "Бонус за скачивание приложения на ПК. Начисление проверьте после установки и входа в аккаунт.\n\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            "③ PICSART PRO\n"
+            "♾️ Безлимит WAN до конца месяца\n"
+            "Для тарифа Pro, если предложение доступно в вашем аккаунте.\n"
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "💡 Условия и доступность бонусов могут меняться — проверьте их на сайте сервиса перед активацией."
         )
         markup = InlineKeyboardMarkup([
             [InlineKeyboardButton("🌐 MIORA DESIGN", url="https://miora.design/")],
@@ -263,15 +278,20 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     action, _, key = data.partition(":")
     product = PRODUCTS.get(key)
     if not product:
-        await query.edit_message_text("Не удалось найти товар. Открой каталог заново.", reply_markup=main_keyboard())
+        await query.edit_message_text(
+            "Похоже, этот раздел уже недоступен.\n\nОткройте каталог и выберите товар ещё раз 👇",
+            reply_markup=main_keyboard(),
+        )
         return
 
     if action == "product":
         text = (
-            f"✨ {product['title']}\n\n"
-            f"💰 Цена: {product['price']:,} ₽\n\n"
-            f"{product['short']}\n\n"
-            "Полное описание, состав и условия — по кнопке «Подробнее»."
+            f"✦ {product['title']}\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            f"💳 Стоимость: {product['price']:,} ₽\n\n"
+            f"✨ {product['short']}\n\n"
+            "📖 Хотите узнать детали? Откройте полное описание.\n"
+            "🛒 Готовы оформить? Нажмите «Купить» — покажем порядок оплаты."
         ).replace(",", " ")
         await query.edit_message_text(text, reply_markup=product_keyboard(key))
         return
@@ -289,17 +309,19 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if action == "buy":
         payment_text = (
-            f"🛒 Покупка: {product['title']}\n"
-            f"💰 К оплате: {product['price']:,} ₽\n\n"
-            "Оплата по СБП\n"
+            "🛒 ОФОРМЛЕНИЕ ЗАКАЗА\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            f"📦 {product['title']}\n"
+            f"💳 К оплате: {product['price']:,} ₽\n\n"
+            "🏦 ОПЛАТА ПО СБП\n"
             f"Банк: {PAYMENT_BANK}\n"
             f"Получатель: {PAYMENT_NAME}\n"
             f"Телефон: {PAYMENT_PHONE}\n\n"
-            "1. Переведи точную сумму через приложение своего банка.\n"
-            "2. После оплаты нажми «✅ Я оплатил и отправить чек».\n"
-            "3. В личных сообщениях продавцу отправь чек/скриншот и дождись подтверждения.\n\n"
-            "Товар или доступ выдаётся вручную после проверки поступления оплаты. "
-            "Нажатие кнопки само по себе не подтверждает оплату."
+            "📌 КАК ЗАВЕРШИТЬ ПОКУПКУ\n"
+            "1. Переведите точную сумму через приложение своего банка.\n"
+            "2. Нажмите кнопку ниже и откройте чат с продавцом.\n"
+            "3. Отправьте чек или скриншот и дождитесь подтверждения.\n\n"
+            "🔐 Доступ или товар выдаётся вручную после проверки оплаты. Нажатие кнопки не подтверждает поступление денег."
         ).replace(",", " ")
         encoded = quote(
             f"Здравствуйте! Я оплатил(а) заказ: {product['title']} — {product['price']} ₽. Сейчас отправлю чек.",
@@ -307,9 +329,9 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         contact_url = f"https://t.me/{ADMIN_USERNAME}?text={encoded}"
         markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton("✅ Я оплатил и отправить чек", url=contact_url)],
-            [InlineKeyboardButton("⬅️ Назад к товару", callback_data=f"product:{key}")],
-            [InlineKeyboardButton("🏪 В каталог", callback_data="catalog")],
+            [InlineKeyboardButton("✅ ОПЛАТИЛ(А) — ОТПРАВИТЬ ЧЕК", url=contact_url)],
+            [InlineKeyboardButton("↩️ Вернуться к товару", callback_data=f"product:{key}")],
+            [InlineKeyboardButton("⌂ В каталог", callback_data="catalog")],
         ])
         await query.edit_message_text(payment_text, reply_markup=markup)
 
