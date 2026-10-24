@@ -600,28 +600,84 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🛒 ОФОРМЛЕНИЕ ЗАКАЗА\n"
             "━━━━━━━━━━━━━━━━━━\n"
             f"📦 {product['title']}\n"
-            f"💳 К оплате: {product['price']:,} ₽\n\n"
-            "🏦 ОПЛАТА ПО СБП\n"
-            f"Банк: {PAYMENT_BANK}\n"
-            f"Получатель: {PAYMENT_NAME}\n"
-            f"Телефон: {PAYMENT_PHONE}\n\n"
-            "📌 КАК ЗАВЕРШИТЬ ПОКУПКУ\n"
-            "1. Переведите точную сумму через приложение своего банка.\n"
-            "2. Нажмите кнопку ниже и откройте чат с продавцом.\n"
-            "3. Отправьте чек или скриншот и дождитесь подтверждения.\n\n"
-            "🔐 Доступ или товар выдаётся вручную после проверки оплаты. Нажатие кнопки не подтверждает поступление денег."
+            f"💳 Сумма заказа: {product['price']:,} ₽\n\n"
+            "Выберите удобный способ оплаты 👇\n\n"
+            "🏦 СБП — перевод через приложение банка\n"
+            "💎 Криптовалюта — USDT через сеть TRON (TRC-20) или перевод в Walt"
         ).replace(",", " ")
-        encoded = quote(
-            f"Здравствуйте! Я оплатил(а) заказ: {product['title']} — {product['price']} ₽. Сейчас отправлю чек.",
-            safe="",
-        )
-        contact_url = f"https://t.me/{ADMIN_USERNAME}?text={encoded}"
         markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton("✅ ОПЛАТИЛ(А) — ОТПРАВИТЬ ЧЕК", url=contact_url)],
+            [InlineKeyboardButton("🏦 Оплатить по СБП", callback_data=f"pay_sbp:{key}")],
+            [InlineKeyboardButton("💎 Оплатить криптовалютой", callback_data=f"pay_crypto:{key}")],
             [InlineKeyboardButton("↩️ Вернуться к товару", callback_data=f"product:{key}")],
             [InlineKeyboardButton("⌂ В каталог", callback_data="catalog")],
         ])
         await query.edit_message_text(payment_text, reply_markup=markup)
+        return
+
+    if action == "pay_sbp":
+        payment_text = (
+            "🏦 ОПЛАТА ПО СБП\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            f"📦 Заказ: {product['title']}\n"
+            f"💳 К оплате: {product['price']:,} ₽\n\n"
+            f"Банк: {PAYMENT_BANK}\n"
+            f"Получатель: {PAYMENT_NAME}\n"
+            f"Телефон: {PAYMENT_PHONE}\n\n"
+            "📌 КАК ОПЛАТИТЬ\n"
+            "1. Откройте приложение своего банка и выберите перевод по номеру телефона через СБП.\n"
+            "2. Проверьте имя получателя и переведите точную сумму заказа.\n"
+            "3. После перевода нажмите кнопку ниже, отправьте чек или скриншот и дождитесь подтверждения.\n\n"
+            "🔐 Товар или доступ выдаётся вручную после проверки поступления оплаты."
+        ).replace(",", " ")
+        encoded = quote(
+            f"Здравствуйте! Оплатил(а) заказ по СБП: {product['title']} — {product['price']} ₽. Отправляю чек.",
+            safe="",
+        )
+        contact_url = f"https://t.me/{ADMIN_USERNAME}?text={encoded}"
+        markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("✅ Отправить чек продавцу", url=contact_url)],
+            [InlineKeyboardButton("↩️ Другой способ оплаты", callback_data=f"buy:{key}")],
+            [InlineKeyboardButton("⌂ В каталог", callback_data="catalog")],
+        ])
+        await query.edit_message_text(payment_text, reply_markup=markup)
+        return
+
+    if action == "pay_crypto":
+        payment_text = (
+            "💎 ОПЛАТА КРИПТОВАЛЮТОЙ\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            f"📦 Заказ: {product['title']}\n"
+            f"💳 Цена товара: {product['price']:,} ₽\n\n"
+            "Перед переводом напишите продавцу и уточните точную сумму в USDT по текущему курсу.\n\n"
+            "ВАРИАНТ 1 — USDT В СЕТИ TRON (TRC-20)\n"
+            "Адрес получателя:\n"
+            "TXJ8nNXqgUZzeMrPdmjWBAooaEvBpXbKYE\n\n"
+            "1. В кошельке или на бирже откройте отправку/вывод USDT.\n"
+            "2. Выберите сеть TRON (TRC-20) — не ERC-20 и не BEP-20.\n"
+            "3. Вставьте адрес выше, укажите согласованную сумму USDT и проверьте сеть и адрес.\n"
+            "4. Подтвердите перевод. Для комиссии сети может понадобиться TRX.\n\n"
+            "ВАРИАНТ 2 — ПЕРЕВОД В WALТ ПО НИКУ\n"
+            "1. Откройте официальный кошелёк Walt: @walt.\n"
+            "2. Нажмите «Перевести», выберите USDT и укажите согласованную сумму.\n"
+            "3. В выборе получателя найдите продавца по нику @walt и внимательно проверьте получателя перед подтверждением.\n"
+            "4. Завершите перевод и сохраните подтверждение операции.\n\n"
+            "📌 ПОСЛЕ ОПЛАТЫ\n"
+            "Нажмите кнопку ниже и отправьте продавцу чек/скриншот или хеш транзакции. Заказ будет выдан после проверки поступления средств.\n\n"
+            "⚠️ Криптопереводы обычно нельзя отменить. Перепроверьте сеть, адрес, сумму и получателя."
+        ).replace(",", " ")
+        encoded = quote(
+            f"Здравствуйте! Хочу оплатить криптовалютой заказ: {product['title']} — {product['price']} ₽. Подскажите точную сумму в USDT и подтвердите реквизиты.",
+            safe="",
+        )
+        contact_url = f"https://t.me/{ADMIN_USERNAME}?text={encoded}"
+        markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("💬 Уточнить сумму в USDT", url=contact_url)],
+            [InlineKeyboardButton("✅ Я оплатил(а) — отправить подтверждение", url=contact_url)],
+            [InlineKeyboardButton("↩️ Другой способ оплаты", callback_data=f"buy:{key}")],
+            [InlineKeyboardButton("⌂ В каталог", callback_data="catalog")],
+        ])
+        await query.edit_message_text(payment_text, reply_markup=markup)
+        return
 
 
 async def health(request: web.Request):
