@@ -6,7 +6,7 @@ from urllib.parse import quote
 from aiohttp import web
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "ferixdiii").strip().lstrip("@")
+ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "6913446846"))
 PAYMENT_PHONE = os.getenv("PAYMENT_PHONE", "+79935801642").strip()
 PAYMENT_BANK = os.getenv("PAYMENT_BANK", "Яндекс Банк").strip()
 PAYMENT_NAME = os.getenv("PAYMENT_NAME", "Дмитрий").strip()
@@ -439,7 +440,7 @@ UGC-креативы, рекламные ролики, Reels, Shorts, TikTok, AI
 }
 
 
-def main_keyboard():
+def main_keyboard(is_admin=False):
     rows = []
     for key, product in PRODUCTS.items():
         if key in ("parser_llm", "omni_creative_v20", "remove_ai_label", "seedream_prompts", "video_reconstruction", "vpn_bot_turnkey", "own_data_audit", "threads_grok_traffic"):
@@ -450,6 +451,8 @@ def main_keyboard():
         )])
     rows.append([InlineKeyboardButton("🎁  АКТУАЛЬНЫЕ ПЛЮШКИ  ·  БОНУСЫ", callback_data="perks")])
     rows.append([InlineKeyboardButton("🛍 Другие товары", callback_data="other_products")])
+    if is_admin:
+        rows.append([InlineKeyboardButton("📨 Рассылка пользователям", callback_data="admin_broadcast")])
     rows.append([InlineKeyboardButton("🧩 Актуальное расширение Google Flow", url="https://t.me/+Fxcp24v79SwyMjAy")])
     rows.append([InlineKeyboardButton("🔐 Ferixdi VPN · есть бесплатный тариф", url="https://t.me/ferixdi_vpn_bot?start=start")])
     rows.append([InlineKeyboardButton("👥 Чат AI-креаторов", url="https://t.me/ai_neiro_chat")])
@@ -490,7 +493,37 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🛒 Для оформления нажмите «Купить»\n\n"
         "🎁 Загляните в «Актуальные плюшки» — там бонусы и предложения сервисов"
     )
-    await update.effective_message.reply_text(text, reply_markup=main_keyboard())
+    user = update.effective_user
+    if user and context.application.bot_data.get("known_users") is not None:
+        context.application.bot_data["known_users"].add(user.id)
+    elif user:
+        context.application.bot_data["known_users"] = {user.id}
+    await update.effective_message.reply_text(text, reply_markup=main_keyboard(bool(user and user.id == ADMIN_USER_ID)))
+
+
+async def handle_admin_broadcast_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if not user or user.id != ADMIN_USER_ID:
+        return
+    if not context.user_data.get("awaiting_broadcast_text"):
+        return
+    if not update.effective_message or not update.effective_message.text:
+        return
+    context.user_data["awaiting_broadcast_text"] = False
+    message_text = update.effective_message.text.strip()
+    if not message_text:
+        await update.effective_message.reply_text("Сообщение пустое. Нажми кнопку рассылки и отправь текст.")
+        return
+    context.user_data["pending_broadcast_text"] = message_text
+    users = context.application.bot_data.get("known_users", set())
+    await update.effective_message.reply_text(
+        f"👀 ПРЕДПРОСМОТР РАССЫЛКИ\n\n{message_text}\n\n"
+        f"Получателей в памяти бота: {len(users)}\n\nОтправить это сообщение?",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("✅ Подтвердить и отправить", callback_data="admin_broadcast_send")],
+            [InlineKeyboardButton("✖️ Отмена", callback_data="admin_broadcast_cancel")],
+        ])
+    )
 
 
 async def show_catalog(query):
@@ -507,6 +540,51 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     data = query.data or ""
+
+    if data == "admin_broadcast":
+        if not query.from_user or query.from_user.id != ADMIN_USER_ID:
+            await query.answer("Недостаточно прав", show_alert=True)
+            return
+        context.user_data["awaiting_broadcast_text"] = True
+        await query.message.reply_text(
+            "📨 РАССЫЛКА\n\nОтправь следующим сообщением текст, который нужно разослать пользователям. "
+            "Пока ничего не отправится — сначала покажу предпросмотр и попрошу подтверждение.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✖️ Отмена", callback_data="admin_broadcast_cancel")]])
+        )
+        return
+
+    if data == "admin_broadcast_cancel":
+        if not query.from_user or query.from_user.id != ADMIN_USER_ID:
+            await query.answer("Недостаточно прав", show_alert=True)
+            return
+        context.user_data.pop("awaiting_broadcast_text", None)
+        context.user_data.pop("pending_broadcast_text", None)
+        await query.edit_message_text("Рассылка отменена.")
+        return
+
+    if data == "admin_broadcast_send":
+        if not query.from_user or query.from_user.id != ADMIN_USER_ID:
+            await query.answer("Недостаточно прав", show_alert=True)
+            return
+        message_text = context.user_data.pop("pending_broadcast_text", None)
+        if not message_text:
+            await query.edit_message_text("Текст рассылки не найден. Запусти рассылку заново через меню.")
+            return
+        users = context.application.bot_data.get("known_users", set())
+        sent = 0
+        failed = 0
+        for user_id in list(users):
+            try:
+                await context.bot.send_message(chat_id=user_id, text=message_text)
+                sent += 1
+            except Exception:
+                failed += 1
+                log.exception("Broadcast failed for user_id=%s", user_id)
+        await query.edit_message_text(
+            f"✅ Рассылка завершена\n\nУспешно отправлено: {sent}\nНе доставлено: {failed}\n"
+            f"Всего известных пользователей с момента запуска этой версии: {len(users)}"
+        )
+        return
 
     if data == "catalog":
         await show_catalog(query)
@@ -708,6 +786,8 @@ async def on_startup(server: web.Application):
     telegram_app.add_handler(CommandHandler("start", start))
     telegram_app.add_handler(CommandHandler("shop", start))
     telegram_app.add_handler(CallbackQueryHandler(callbacks))
+    telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_broadcast_text))
+    telegram_app.bot_data["known_users"] = set()
 
     await telegram_app.initialize()
     await telegram_app.start()
